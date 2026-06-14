@@ -53,10 +53,23 @@ function handleNextStranger(socket, data) {
 
     socket.leave(roomId);
 }
+
+
+function handleLeaveChat(socket , data) {
+
+    const { roomId } = data;
+
+    socket.to(roomId).emit("stranger-disconnected");
+    
+    socketToRoom.delete(socket.id);
+
+    socket.leave(roomId);
+}
  
 
 module.exports = {
     handleFindStranger,
     handleDisconnect,
-    handleNextStranger
+    handleNextStranger,
+    handleLeaveChat
 };
