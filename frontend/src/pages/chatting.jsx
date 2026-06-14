@@ -5,7 +5,7 @@ import {
   Send
 } from "lucide-react";
 
-import { useState , useEffect } from "react";
+import { useState , useEffect , useRef } from "react";
 import { socket } from "../socket";
 import { useNavigate } from "react-router-dom";
 
@@ -21,7 +21,8 @@ export const Chatting = () => {
 
   const [messages, setMessages] = useState([]);
   
-
+  const [isTyping , setIsTyping] = useState(false);
+  
   const [input, setInput] = useState("");
 
 
@@ -79,10 +80,20 @@ export const Chatting = () => {
     });
 
     
+    socket.on("typing" , () => {
+      setIsTyping(true);
+
+      setTimeout(() => {
+        setIsTyping(false);
+      }, 2000);
+    });
+
+
     return () => {
       socket.off("matched");
       socket.off("message");
       socket.off("stranger-disconnected");
+      socket.off("typing");
     };
 
   }, []);
@@ -100,6 +111,21 @@ export const Chatting = () => {
   }
 
 
+  const handleBackHome = () => {
+    navigateHome("/");
+    socket.emit("leave-chat", { roomId });
+  };
+
+
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth"
+    });
+  }, [messages]);
+
+
   return (
     <div className="h-screen bg-white flex flex-col">
 
@@ -107,7 +133,7 @@ export const Chatting = () => {
       <header className="h-20 border-b border-black flex items-center justify-between px-4">
 
         <button
-          onClick={() => navigateHome("/")}
+          onClick={handleBackHome}
           className="
             flex items-center gap-2
             font-semibold
@@ -169,64 +195,78 @@ export const Chatting = () => {
           mt-8
           mb-5">
 
+        <div className="min-h-full flex flex-col justify-end">
 
-        {/* Messages */}
+          {/* Messages */}
 
-        <div className="space-y-3">
+          <div className="space-y-3">
 
 
-         {messages.length === 0 ? (
-           <div className="h-full flex items-center justify-center">
+          {messages.length === 0 ? (
+            <div className="h-full flex items-center justify-center">
 
-            <div className="text-center">
+              <div className="text-center">
 
-              <h2 className="text-2xl font-bold">
-                {status === "searching" ? "Looking for a stranger..." : status === "connected" ? "Connected to a stranger!" : "Stranger disconnected!"}
-              </h2>
+                <h2 className="text-2xl font-bold">
+                  {status === "searching" ? "Looking for a stranger..." : status === "connected" ? "Connected to a stranger!" : "Stranger disconnected!"}
+                </h2>
 
-              <p className="text-gray-500 mt-2">
-                {status === "searching" ? "Please wait while we find someone." : status === "connected" ? "You can now talk to the stranger!" : "Please click the 'Next Stranger' button to find someone new."}
-              </p>
+                <p className="text-gray-500 mt-2">
+                  {status === "searching" ? "Please wait while we find someone." : status === "connected" ? "You can now talk to the stranger!" : "Please click the 'Next Stranger' button to find someone new."}
+                </p>
+
+              </div>
 
             </div>
+
+          ) : (
+
+            messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  msg.sender === "me"
+                    ? "justify-end"
+                    : "justify-start"
+                }`}>
+
+                <div
+                  className={`
+                    px-5
+                    py-3
+                    rounded-4xl
+                    max-w-[80%]
+                    md:max-w-[65%]
+                    lg:max-w-[50%]
+                    text-base
+                    md:text-lg
+                    break-words whitespace-pre-wrap
+                    ${
+                      msg.sender === "me"
+                        ? "bg-black text-white"
+                        : "border border-black"
+                    }
+                  `}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))
+          )}
+
+            <div ref={bottomRef}></div>
 
           </div>
 
-        ) : (
-
-          messages.map((msg, index) => (
-            <div
-              key={index}
-              className={`flex ${
-                msg.sender === "me"
-                  ? "justify-end"
-                  : "justify-start"
-              }`}>
-
-              <div
-                className={`
-                  px-5
-                  py-3
-                  rounded-4xl
-                  max-w-[80%]
-                  md:max-w-[65%]
-                  lg:max-w-[50%]
-                  text-base
-                  md:text-lg
-                  ${
-                    msg.sender === "me"
-                      ? "bg-black text-white"
-                      : "border border-black"
-                  }
-                `}
-              >
-                {msg.text}
-              </div>
-            </div>
-          ))
-         )}
+          {isTyping && (
+            <p className="text-sm text-gray-500">
+              Stranger is typing...
+            </p>
+          )}
 
         </div>
+
+
 
       </main>
 
@@ -240,7 +280,10 @@ export const Chatting = () => {
             type="text"
             placeholder="Type a message..."
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+                        setInput(e.target.value)
+                        socket.emit("typing" , { roomId })
+                      }}
             disabled={status !== "connected"}
             onKeyDown={(e) => {
                         if (e.key === "Enter") {

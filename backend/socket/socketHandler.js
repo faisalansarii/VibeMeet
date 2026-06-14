@@ -1,4 +1,4 @@
-const { handleFindStranger, handleDisconnect, handleNextStranger } = require("./matchmaking");
+const { handleFindStranger, handleDisconnect, handleNextStranger , handleLeaveChat } = require("./matchmaking");
 const { handleMessage } = require("./messageHandler");
 
 module.exports = (io) => {
@@ -22,6 +22,15 @@ module.exports = (io) => {
         socket.on("next-stranger", (data) => {
             handleNextStranger(socket, data);
         });
+
+        socket.on("leave-chat" , (data) => {
+            handleLeaveChat(socket, data)
+        })
+
+        socket.on("typing" , (data) => {
+            const { roomId } = data;
+            socket.to(roomId).emit("typing");
+        })
 
     });
 
