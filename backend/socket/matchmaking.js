@@ -45,6 +45,10 @@ function handleDisconnect(socket) {
 
 function handleNextStranger(socket, data) {
 
+    if (waitingUser === socket) {
+        waitingUser = null;
+    }
+
     const { roomId } = data;
 
     socket.to(roomId).emit("stranger-disconnected");
@@ -56,6 +60,10 @@ function handleNextStranger(socket, data) {
 
 
 function handleLeaveChat(socket , data) {
+
+    if (waitingUser === socket) {
+        waitingUser = null;
+    }
 
     const { roomId } = data;
 
