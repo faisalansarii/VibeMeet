@@ -1,69 +1,95 @@
-let waitingUser = null;
+let waitingTextUser = null;
+let waitingVideoUser = null;
 
 const socketToRoom = new Map();
 
 
-function handleFindStranger(socket) {
+
+function handleFindStranger(socket, chatType) {
+
+    let waitingUser;
+
+    if (chatType === "text") {
+        waitingUser = waitingTextUser;
+    } else if (chatType === "video") {
+        waitingUser = waitingVideoUser;
+    } else {
+        return;
+    }
 
     if (waitingUser === null) {
 
-        waitingUser = socket;
+        if (chatType === "text") {
+            waitingTextUser = socket;
+        } else {
+            waitingVideoUser = socket;
+        }
 
-    } 
-    else {
+    } else {
 
-        const roomId = `room-${waitingUser.id}-${socket.id}`;
+        const roomId = `${chatType}-room-${waitingUser.id}-${socket.id}`;
 
         waitingUser.join(roomId);
         socket.join(roomId);
 
         socketToRoom.set(waitingUser.id, roomId);
         socketToRoom.set(socket.id, roomId);
-        console.log(socketToRoom);
 
-        waitingUser.emit("matched", { roomId  , isCaller : true });
-        socket.emit("matched", { roomId, isCaller : false });
+        waitingUser.emit("matched", {
+            roomId,
+            isCaller: true
+        });
 
-        waitingUser = null;
+        socket.emit("matched", {
+            roomId,
+            isCaller: false
+        });
+
+        if (chatType === "text") {
+            waitingTextUser = null;
+        } else {
+            waitingVideoUser = null;
+        }
     }
 }
 
+
+
+function removeFromWaitingQueues(socket) {
+    if (waitingTextUser === socket) {
+        waitingTextUser = null;
+    }
+
+    if (waitingVideoUser === socket) {
+        waitingVideoUser = null;
+    }
+}
+
+function removeRoomMappings(roomId) {
+    for (const [socketId, mappedRoomId] of socketToRoom.entries()) {
+        if (mappedRoomId === roomId) {
+            socketToRoom.delete(socketId);
+        }
+    }
+}
+
+
 function handleDisconnect(socket) {
 
-    if (waitingUser === socket) {
-        waitingUser = null;
-    }
+    removeFromWaitingQueues(socket);
 
     const roomId = socketToRoom.get(socket.id);
 
     if (roomId) {
         socket.to(roomId).emit("stranger-disconnected");
-        socketToRoom.delete(socket.id);
+        removeRoomMappings(roomId);
     }
 }
 
 
 function handleNextStranger(socket, data) {
 
-    if (waitingUser === socket) {
-        waitingUser = null;
-    }
-
-    const { roomId } = data;
-
-    socket.to(roomId).emit("stranger-disconnected");
-
-    socketToRoom.delete(socket.id);
-
-    socket.leave(roomId);
-}
-
-
-function handleLeaveChat(socket , data) {
-
-    if (waitingUser === socket) {
-        waitingUser = null;
-    }
+    removeFromWaitingQueues(socket);
 
     const { roomId } = data || {};
 
@@ -72,8 +98,26 @@ function handleLeaveChat(socket , data) {
     }
 
     socket.to(roomId).emit("stranger-disconnected");
-    
-    socketToRoom.delete(socket.id);
+
+    removeRoomMappings(roomId);
+
+    socket.leave(roomId);
+}
+
+
+function handleLeaveChat(socket, data) {
+
+    removeFromWaitingQueues(socket);
+
+    const { roomId } = data || {};
+
+    if (!roomId) {
+        return;
+    }
+
+    socket.to(roomId).emit("stranger-disconnected");
+
+    removeRoomMappings(roomId);
 
     socket.leave(roomId);
 }

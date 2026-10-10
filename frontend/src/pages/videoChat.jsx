@@ -71,7 +71,7 @@ export const VideoChat = () => {
 
             createPeerConnection();
             
-            socket.emit("find-stranger");
+            socket.emit("find-stranger" , "video");
         }
     
         startMedia(); 
@@ -187,7 +187,7 @@ export const VideoChat = () => {
 
         createPeerConnection();
 
-        socket.emit("find-stranger");
+        socket.emit("find-stranger" , "video");
     };
 
 
@@ -280,7 +280,7 @@ export const VideoChat = () => {
 
 
                 {status === "searching" && (
-                    <div className="w-[50%] bg-[#bdbbbb] flex items-center justify-center flex-col gap-4 rounded-lg">
+                    <div className="w-full md:w-[50%] aspect-video bg-[#bdbbbb] flex items-center justify-center flex-col gap-4 rounded-lg">
 
                         <div className="flex items-center justify-center">
                             <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#9e9d9d] border-t-transparent"></div>
@@ -293,7 +293,7 @@ export const VideoChat = () => {
                 )}
 
                 {status === "disconnected" && (
-                    <div className="w-[50%] bg-[#bdbbbb] flex items-center justify-center flex-col gap-4 rounded-lg">
+                    <div className="w-full md:w-[50%] aspect-video bg-[#bdbbbb] flex items-center justify-center flex-col gap-4 rounded-lg">
                         <p className="text-lg font-semibold">
                             Stranger disconnected.
                         </p>
