@@ -50,7 +50,7 @@ export const Chatting = () => {
 
   useEffect(() => {
 
-    socket.emit("find-stranger")
+    socket.emit("find-stranger" , "text")
 
     socket.on("matched" , ({roomId}) => {
       setRoomId(roomId);
@@ -107,7 +107,7 @@ export const Chatting = () => {
     setStatus("searching");
     setRoomId(null);
 
-    socket.emit("find-stranger");
+    socket.emit("find-stranger" , "text");
   }
 
 

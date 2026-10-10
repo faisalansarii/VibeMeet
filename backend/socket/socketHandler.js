@@ -8,8 +8,8 @@ module.exports = (io) => {
 
         console.log("User connected:", socket.id);
 
-        socket.on("find-stranger", () => {
-            handleFindStranger(socket);
+        socket.on("find-stranger", (chatType) => {
+            handleFindStranger(socket , chatType);
         });
 
         socket.on("message", (data) => {
