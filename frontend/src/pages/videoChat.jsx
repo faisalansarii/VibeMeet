@@ -268,10 +268,10 @@ export const VideoChat = () => {
 
 
 
-            <div className="flex px-5 gap-4 mt-8">
+            <div className="flex flex-col md:flex-row px-5 gap-4 mt-8">
 
                 <video
-                    className="w-[50%] rounded-lg"
+                    className="w-full md:w-[50%] aspect-video object-cover rounded-lg"
                     ref={localVideoRef}
                     autoPlay
                     playsInline
@@ -301,7 +301,7 @@ export const VideoChat = () => {
                 )}
 
                 <video
-                    className={`w-[50%] rounded-lg ${status === "connected" ? "block" : "hidden"}`}
+                    className={`w-full md:w-[50%] aspect-video object-cover rounded-lg ${status === "connected" ? "block" : "hidden"}`}
                     ref={remoteVideoRef}
                     autoPlay
                     playsInline
