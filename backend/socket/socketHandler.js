@@ -1,5 +1,6 @@
 const { handleFindStranger, handleDisconnect, handleNextStranger , handleLeaveChat } = require("./matchmaking");
 const { handleMessage } = require("./messageHandler");
+const { handleOffer , handleAnswer , handleIceCandidate } = require("./webrtc");
 
 module.exports = (io) => {
 
@@ -31,6 +32,20 @@ module.exports = (io) => {
             const { roomId } = data;
             socket.to(roomId).emit("typing");
         })
+
+
+
+        socket.on("offer" , (data) => {
+            handleOffer(socket , data);
+        })
+
+        socket.on("answer" , (data) => {
+            handleAnswer(socket , data);
+        });
+
+        socket.on("ice-candidate" , (data) => {
+            handleIceCandidate(socket , data);
+        });
 
     });
 

@@ -21,8 +21,8 @@ function handleFindStranger(socket) {
         socketToRoom.set(socket.id, roomId);
         console.log(socketToRoom);
 
-        waitingUser.emit("matched", { roomId });
-        socket.emit("matched", { roomId });
+        waitingUser.emit("matched", { roomId  , isCaller : true });
+        socket.emit("matched", { roomId, isCaller : false });
 
         waitingUser = null;
     }
@@ -65,7 +65,11 @@ function handleLeaveChat(socket , data) {
         waitingUser = null;
     }
 
-    const { roomId } = data;
+    const { roomId } = data || {};
+
+    if (!roomId) {
+        return;
+    }
 
     socket.to(roomId).emit("stranger-disconnected");
     

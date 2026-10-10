@@ -7,6 +7,7 @@ export const Landing = () => {
   const [mode , setMode] = useState("");
 
   const navigateChat = useNavigate();
+  const navigateVideoChat = useNavigate();
 
   const navigateTo = () => {
 
@@ -14,7 +15,7 @@ export const Landing = () => {
       navigateChat("/chat");
     }
     else if (mode === "video") {
-      return alert("Video chat is coming soon! Stay tuned.");
+      navigateVideoChat("/videoChat");
     }
     else if (mode === "both") {
       return alert("Both mode is coming soon! Stay tuned.");
